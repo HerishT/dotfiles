@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Pick random wallpaper
+set -- $(find "$HOME/Pictures/wallpapers" -type f)
+count=$#
+[ "$count" -eq 0 ] && echo "No wallpapers found." && exit 1
+rand=$(od -An -N2 -tu2 </dev/urandom | tr -d ' ')
+index=$((rand % count + 1))
+eval wall=\${$index}
+
+# Apply pywal
+wal -c >/dev/null 2>&1
+wal -i "$wall" >/dev/null 2>&1
+
+pywalfox update
+
+# Fix only colors-kitty.conf: force background_opacity to 0.7
+conf="$HOME/.cache/wal/colors-kitty.conf"
+sed -i '' '/^background_opacity /d' "$conf"
+echo "background_opacity 0.75" >>"$conf"
+cd /Users/ht/Library/Application\ Support/Übersicht/widgets/simple-bar/lib/styles/pywal
+./pywal-gen.sh
+generate-readability-css
+
+osascript -e '
+tell application "Kitty"
+    activate
+    delay 0.1
+    tell application "System Events"
+        keystroke "," using {control down, command down}
+    end tell
+end tell
+'
+clear
+fastfetch
+echo $wall

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+url="$1"
+tmpdir="/tmp"
+filename="$(basename "${url%%\?*}" | sed 's/%20/ /g')"
+filepath="$tmpdir/$filename"
+
+# Use your actual mpv path
+MPV="/opt/homebrew/bin/mpv"
+
+# Use this for faster YouTube startup and seek
+MPV_OPTS="--no-terminal --quiet --script-opts=ytdl_hook-try_ytdl_first=yes"
+
+# Detect and dispatch by URL content
+case "$url" in
+*.mkv | *.webm | *.mp4 | *.mov | *.avi | *youtube.com* | *youtu.be* | *vimeo.com* | *rumble.com* | *odysee.com* | *bitchute.com* | *hooktube.com* | *videos.lukesmith.xyz*)
+  "$MPV" $MPV_OPTS "$url" >/dev/null 2>&1 &
+  ;;
+
+*.mp3 | *.flac | *.opus)
+  cd ~/Downloads && curl -LO "$url" >/dev/null 2>&1 &
+  ;;
+
+*.png | *.jpg | *.jpeg | *.gif)
+  curl -sL "$url" -o "$filepath" && open -a Preview "$filepath" &
+  ;;
+
+*.pdf | *.cbz | *.cbr)
+  curl -sL "$url" -o "$filepath" && open -a Zathura "$filepath" &
+  ;;
+
+*)
+  # Use readability-cli and open result in Firefox Developer Edition with your Newsboat profile
+  readable "$url" --style "/Users/ht/.cache/wal/readability.css" >/tmp/readable.html &&
+    open -na "/Applications/Firefox Developer Edition.app" --args --no-remote --profile "/Users/ht/Library/Application Support/Firefox/Profiles/fyyd9j9l.Newsboat" "/tmp/readable.html"
+  ;;
+esac
