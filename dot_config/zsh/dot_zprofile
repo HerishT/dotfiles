@@ -1,0 +1,7 @@
+emulate sh
+source ~/.profile
+emulate zsh
+
+
+# Configure shell for brew
+eval "$(/opt/homebrew/bin/brew shellenv)"

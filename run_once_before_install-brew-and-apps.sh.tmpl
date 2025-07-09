@@ -1,0 +1,23 @@
+#!/bin/bash
+# This script runs once before chezmoi applies other files.
+# It ensures Homebrew is installed and then installs apps from the Brewfile.
+
+echo "🍺 Installing Homebrew..."
+if ! command -v brew &> /dev/null; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add Homebrew to PATH for the current shell session (adjust for Apple Silicon or Intel)
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        export PATH="/opt/homebrew/bin:$PATH"
+    else
+        export PATH="/usr/local/bin:$PATH"
+    fi
+else
+    echo "Homebrew is already installed."
+fi
+
+echo "📦 Installing apps from Brewfile..."
+# Use chezmoi's template function to get the path to the Brewfile
+# which chezmoi will have placed in $HOME/.Brewfile
+brew bundle --file="${HOME}/.Brewfile"
+
+echo "✅ Applications installed via Homebrew."
